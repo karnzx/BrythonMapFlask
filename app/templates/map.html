@@ -1,0 +1,71 @@
+{% extends '/base-map.html' %}
+{% block body %}
+<div>
+    <p id="coords"></p>
+    <div>
+        <button id="chiangmai">ไปเชียงใหม่</button>
+        <button id="hatyai">ไปหาดใหญ่</button>
+        <button id="bankkok">ไปกรุงเทพ</button>
+    </div>
+    <div id="mapid" style="margin: 1em;"></div>
+</div>
+    
+<script type="text/python">
+from browser import alert, document, window, html
+
+world_map = document["mapid"]
+thailand_center=(13.736717, 100.523186)
+
+center = dict(
+    hatyai=(7.0166666, 100.4666648),
+    bankkok=(13.7563, 100.5018),
+    chiangmai=(18.7953, 98.9620)
+)
+
+detial = dict(
+    hatyai=(f'''ใจกลางหาดใหญ่ คือ <b>{center['hatyai']}</b> </br>
+        ไก่ทอดอร่อยมาก แต่ชานมไข่มุกอร่อยกว่า'''),
+    bankkok=(f'''ใจกลางกรุงเทพ คือ <b>{center['hatyai']}</b> </br>
+        อยากกินไก่ทอดบอนชอน'''),
+    chiangmai=(f'''ใจกลางเชียงใหม่ คือ <b>{center['chiangmai']}</b> </br>
+        เหนือสุดแดนสยาม''')
+)
+zoom = 6
+
+# Access the leaflet.js API
+leaflet = window.L
+
+def success(pos):
+    # Display coordinates
+    ul = html.UL(id="nav")
+    ul <= html.LI(f'latitude: {pos.coords.latitude}')
+    ul <= html.LI(f'longitude: {pos.coords.longitude}')
+    document["coords"] <= ul
+
+    leaflet.marker([pos.coords.latitude, pos.coords.longitude]).addTo(mymap).bindPopup('<b>ตำแหน่งของคุณ</b>')
+
+def error(error):
+    print("Your browser doesn't support geolocation")
+
+def flyto(ev, province_name):
+    mymap.flyTo(center[province_name], 14)
+
+# Create world map
+mymap = leaflet.map('mapid').setView(thailand_center, zoom)
+leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    "maxZoom": 19,
+	"attribution": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(mymap)
+
+window.navigator.geolocation.getCurrentPosition(success, error)
+
+# Put marker on map
+for i in center:
+    leaflet.marker([center[i][0], center[i][1]]).addTo(mymap).bindPopup(detial[i])
+
+document['chiangmai'].bind('click', lambda ev: flyto(ev, 'chiangmai'))
+document['hatyai'].bind('click', lambda ev: flyto(ev, 'hatyai'))
+document['bankkok'].bind('click', lambda ev: flyto(ev, 'bankkok'))
+
+</script>
+{% endblock body %}
